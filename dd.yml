@@ -1,0 +1,30 @@
+version: '3.8'
+services:
+  redis:
+    image: redis:7.2.4
+    container_name: redis-master
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_master_data:/data          # Docker managed volume
+      - ./data/redis:/data/local         # Local directory
+      - ./config/redis.conf:/etc/redis/redis.conf:ro  # Redis configuration
+      - ./ca:/etc/certs:ro
+    command: redis-server /etc/redis/redis.conf
+    restart: unless-stopped
+    networks:
+      - redis-network
+    environment:
+      - REDIS_PASSWORD=${REDIS_PASSWORD}
+    healthcheck:
+      test: ["CMD", "redis-cli", "-a", "${REDIS_PASSWORD}", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+networks:
+  redis-network:
+    name: redis-network
+    driver: bridge
+volumes:
+  redis_master_data:
+    name: redis_master_data

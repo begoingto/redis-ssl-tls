@@ -1,0 +1,49 @@
+services:
+  # redisinsight:
+  #   image: redislabs/redisinsight:latest
+  #   ports:
+  #     - 8001:8001
+  #   environment:
+  #     - REDISINSIGHT_REDIS_URI=redis://redis:6379
+  #   depends_on:
+  #     - redis
+
+  # redis:
+  #   image: redis:latest
+  #   command: redis-server /etc/redis/redis.conf
+  #   ports:
+  #     - 6378:6379
+  #   volumes:
+  #     - ./redis.conf:/etc/redis/redis.conf:ro
+    
+  redis:
+    image: redis:7.2.4
+    container_name: redis-master
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_master_data:/data          # Docker managed volume
+      - ./data/redis:/data/local         # Local directory
+      - ./redis.conf:/etc/redis/redis.conf:ro  # Redis configuration
+      - ./certs/redis.key:/etc/certs/redis.key
+      - ./certs/redis.pem:/etc/certs/redis.pem
+    command: redis-server /etc/redis/redis.conf
+    restart: unless-stopped
+    privileged: true
+    networks:
+      - redis-network
+    # environment:
+    #   - REDIS_PASSWORD=${REDIS_PASSWORD}
+    # healthcheck:
+    #   test: ["CMD", "redis-cli", "-a", "${REDIS_PASSWORD}", "ping"]
+    #   interval: 10s
+    #   timeout: 5s
+    #   retries: 3
+
+networks:
+  redis-network:
+    name: redis-network
+    driver: bridge
+volumes:
+  redis_master_data:
+    name: redis_master_data
